@@ -1,0 +1,14 @@
+diff --git a/src/fs/phy.h b/src/fs/phy.h
+index dc0f839..a7d2fdf 100644
+--- a/src/fs/phy.h
++++ b/src/fs/phy.h
+@@ -59,9 +59,7 @@
+ #define PHY_LED_DRIVER_PICO     0x1
+ #define PHY_LED_DRIVER_PIMORONI 0x2
+ #define PHY_LED_DRIVER_WS2812   0x3
+-#ifdef CYW43_WL_GPIO_LED_PIN
+ #define PHY_LED_DRIVER_CYW43    0x4
+-#endif
+ #ifdef ESP_PLATFORM
+ #define PHY_LED_DRIVER_NEOPIXEL  0x5
+ #endif

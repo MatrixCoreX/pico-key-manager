@@ -1,0 +1,34 @@
+Pico Key 管理器
+
+启动
+打开 Ubuntu 应用菜单，搜索 Pico Key。
+也可运行：~/.local/bin/pico-key-manager
+
+功能
+设备概览：自动检测、固件版本、PIN 状态、协议与算法。
+PIN 与验证：设置 PIN、修改 PIN、验证现有 PIN；PIN 不保存、不记录。
+Passkey：用 PIN 解锁驻留凭据列表，按网站和账号查看、删除单个凭据。
+签名测试：支持 ES256 和 EdDSA；用临时非驻留凭据检查 PIN、按键与签名。
+固件与维护：验证和写入 Pico 2 W 的 RP2350 Arm Secure UF2。
+重置 FIDO：明确输入“清空”后，按界面指引拔插和按键确认；清除 PIN 与凭据。
+诊断：导出设备能力，不导出 PIN、凭据 ID 或账号列表。
+
+数据
+PIN 只在当前设备操作中使用，不写入配置或日志。
+签名测试结果：~/.local/share/pico-key-manager/last-test.json
+应用运行环境：工程下 .venv（固定位置，不依赖 /tmp）。
+应用菜单：~/.local/share/applications/io.github.guagua.PicoKeyManager.desktop
+
+开发与维护
+代码：pico_key_manager/
+安装或重新安装：bash install-desktop.sh
+运行：.venv/bin/python -m pico_key_manager
+后台测试：TMPDIR="$PWD/.tmp" .venv/bin/python -m unittest discover -s tests -v
+界面验证：PYTHONPATH="$PWD" .venv/bin/python tests/gui_smoke.py
+界面检查使用合成数据和取消操作，不修改真实 PIN 或清空真实凭据。
+
+已验证
+实机读取 Pico Key（2e8a:10fe）、固件 8.2、PIN 已设置。
+五个页面、PIN 校验、取消、重置确认、断开状态均有界面检查。
+未通过自动测试执行真实 PIN 更改、真实凭据删除或设备重置。
+管理工具不会改变 OpenAI 对硬件密钥的资格判定。

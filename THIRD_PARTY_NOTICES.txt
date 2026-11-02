@@ -1,0 +1,23 @@
+Third-party components and firmware provenance
+
+The firmware/source directory is a source snapshot of:
+
+Pico FIDO — https://github.com/polhenarejos/pico-fido
+Commit b1df38dbab49b7365282e1bad12f0c38862cf643
+Original license retained at firmware/source/LICENSE (GNU AGPL v3).
+
+PicoKeys SDK — https://github.com/polhenarejos/pico-keys-sdk
+Commit 50699e53e8ada214c27f6c9b66ea3b6f127fc655
+Original license retained at firmware/source/pico-keys-sdk/LICENSE (GNU AGPL v3).
+
+Local changes are included in the snapshot and separately recorded in patches/.
+The exported source includes upstream public test fixtures; it is not a dump of
+any user's device memory or credentials.
+
+Additional firmware dependencies are fetched by the upstream build definitions.
+Their exact revisions and the Pico SDK revision used for the reference build are
+recorded in firmware/build-manifest.json. Their original licenses continue to
+apply. See the corresponding upstream repositories and source license files.
+
+The desktop tool imports python-fido2 and uses the system GTK, PyGObject and
+libadwaita runtime. Those dependencies retain their respective licenses.

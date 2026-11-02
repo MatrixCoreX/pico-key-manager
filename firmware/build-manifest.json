@@ -1,0 +1,59 @@
+{
+  "board": "pico2_w",
+  "platform": "rp2350-arm-s",
+  "pico_fido": "b1df38dbab49b7365282e1bad12f0c38862cf643",
+  "pico_keys_sdk": "50699e53e8ada214c27f6c9b66ea3b6f127fc655",
+  "pico_sdk": "079c6f39023649b154152db30f1d781e884879bc",
+  "mbedtls": "fc39404125e93ee00e6758605e6c6f2c8db440f1",
+  "tinycbor": "c0aad2fb2137a31b9845fbaae3653540c410f215",
+  "flags": {
+    "ENABLE_EDDSA": true,
+    "FORCE_BUTTON_WAIT": true,
+    "ENABLE_OATH_APP": false,
+    "ENABLE_OTP_APP": false,
+    "ENABLE_PQC": false,
+    "ENABLE_LIBCVC": false
+  },
+  "usb_identity": "2e8a:10fe",
+  "compiler": "arm-none-eabi-gcc (15:14.2.rel1-1) 14.2.1 20241119",
+  "uf2": {
+    "file": "firmware/pico_fido_pico2_w_EXPERIMENTAL.uf2",
+    "sha256": "70d7cd9ba0773ac8e2eeeb858d4285b160cd095107cd1efdad4480cf011edce0",
+    "bytes": 1416192,
+    "total_blocks": 2766,
+    "arm_secure_blocks": 2765,
+    "family_ids": [
+      "0xe48bff57",
+      "0xe48bff59"
+    ],
+    "structural_validation": "passed; RP2350 absolute marker grouped separately from Arm secure payload"
+  },
+  "source_patches": [
+    "patches/pico2w-led-driver.patch",
+    "patches/pico2w-touch-default.patch",
+    "patches/pico2w-user-presence.patch"
+  ],
+  "default_user_presence_timeout_seconds": 30,
+  "source_directory": "firmware/source",
+  "tested": {
+    "compiled": false,
+    "hardware": false,
+    "touch_required": false,
+    "openai_registration": false,
+    "daybreak_eligibility": false
+  },
+  "reference_validation": {
+    "compiled": true,
+    "hardware": true,
+    "touch_required": true,
+    "openai_registration": false,
+    "daybreak_eligibility": false,
+    "no_touch_registration_rejected": true,
+    "no_touch_authentication_rejected": true,
+    "touch_authentication_signature_verified": true,
+    "touch_registration": true,
+    "pin_protected_registration": true,
+    "pin_protected_authentication": true
+  },
+  "reference_validation_note": "Reference validation of this compiled image on a Pico 2 W; this is not a state report for a newly connected device."
+}

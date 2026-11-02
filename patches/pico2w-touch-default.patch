@@ -1,0 +1,20 @@
+diff --git a/src/fs/phy.c b/src/fs/phy.c
+index 43b12d8..d6d5de7 100644
+--- a/src/fs/phy.c
++++ b/src/fs/phy.c
+@@ -184,7 +184,14 @@ int phy_unserialize_data(const_byte_array_t data, phy_data_t *phy) {
+ 
+ int phy_init(void) {
+     memset(&phy_data, 0, sizeof(phy_data_t));
+-    return phy_load();
++    int ret = phy_load();
++#ifdef FORCE_BUTTON_WAIT
++    if (ret == PICOKEYS_OK && (!phy_data.up_btn_present || phy_data.up_btn == 0)) {
++        phy_data.up_btn = 30;
++        phy_data.up_btn_present = true;
++    }
++#endif
++    return ret;
+ }
+ 
+ int phy_save(void) {
