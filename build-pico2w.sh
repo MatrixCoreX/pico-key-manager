@@ -14,8 +14,13 @@ case "$task_profile" in
         task_filename=pico_fido_pico2_w_YUBIKEY_USB_COMPAT_EXPERIMENTAL.uf2
         task_default_build="$task_root/build/pico2w-yubikey-compat"
         ;;
+    usb-repair)
+        task_vidpid=None
+        task_filename=pico_fido_pico2_w_USB_REPAIR_EXPERIMENTAL.uf2
+        task_default_build="$task_root/build/pico2w-usb-repair"
+        ;;
     *)
-        echo 'Usage: bash build-pico2w.sh [native|yubikey-compat]' >&2
+        echo 'Usage: bash build-pico2w.sh [native|yubikey-compat|usb-repair]' >&2
         exit 2
         ;;
 esac

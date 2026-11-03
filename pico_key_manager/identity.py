@@ -14,6 +14,11 @@ PROFILES = {
         "file": "pico_fido_pico2_w_YUBIKEY_USB_COMPAT_EXPERIMENTAL.uf2",
         "manifest": "build-manifest-yubikey-compat.json",
     },
+    "usb-repair": {
+        "vidpid": "None", "usb_identity": "2e8a:10fe",
+        "file": "pico_fido_pico2_w_USB_REPAIR_EXPERIMENTAL.uf2",
+        "manifest": "build-manifest-usb-repair.json",
+    },
 }
 
 

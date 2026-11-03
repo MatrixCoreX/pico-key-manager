@@ -37,7 +37,7 @@ class CompatibilityTests(unittest.TestCase):
         self.assertFalse(is_pico_descriptor(self.descriptor(0x1234, 0x1234, 'Pico Key')))
 
     def test_profile_images_match_manifests_and_keep_distinct_outputs(self):
-        self.assertNotEqual(PROFILES['native']['file'], PROFILES['yubikey-compat']['file'])
+        self.assertEqual(len({config['file'] for config in PROFILES.values()}), len(PROFILES))
         for profile, config in PROFILES.items():
             with self.subTest(profile=profile):
                 data, metadata = flasher.prepared_image(profile)

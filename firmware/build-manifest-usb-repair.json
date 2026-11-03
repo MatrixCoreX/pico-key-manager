@@ -1,0 +1,65 @@
+{
+  "board": "pico2_w",
+  "platform": "rp2350-arm-s",
+  "pico_fido": "b1df38dbab49b7365282e1bad12f0c38862cf643",
+  "pico_keys_sdk": "50699e53e8ada214c27f6c9b66ea3b6f127fc655",
+  "pico_sdk": "079c6f39023649b154152db30f1d781e884879bc",
+  "mbedtls": "fc39404125e93ee00e6758605e6c6f2c8db440f1",
+  "tinycbor": "c0aad2fb2137a31b9845fbaae3653540c410f215",
+  "flags": {
+    "ENABLE_EDDSA": true,
+    "FORCE_BUTTON_WAIT": true,
+    "ENABLE_OATH_APP": false,
+    "ENABLE_OTP_APP": false,
+    "ENABLE_PQC": false,
+    "ENABLE_LIBCVC": false,
+    "VIDPID": "None"
+  },
+  "usb_identity": "2e8a:10fe",
+  "compiler": "arm-none-eabi-gcc (15:14.2.rel1-1) 14.2.1 20241119",
+  "uf2": {
+    "file": "firmware/pico_fido_pico2_w_USB_REPAIR_EXPERIMENTAL.uf2",
+    "sha256": "7a07946280e7aac51c8bbbf4c69a260c0ffa0e4dc6383132aac5ba6ff44190e5",
+    "bytes": 1416192,
+    "total_blocks": 2766,
+    "arm_secure_blocks": 2765,
+    "family_ids": [
+      "0xe48bff57",
+      "0xe48bff59"
+    ],
+    "payload_start": "0x10000000",
+    "payload_end": "0x100acd00",
+    "structural_validation": "passed; payload confined to the 1 MiB firmware partition"
+  },
+  "source_patches": [
+    "patches/pico2w-getinfo-interop.patch",
+    "patches/pico2w-led-driver.patch",
+    "patches/pico2w-touch-default.patch",
+    "patches/pico2w-user-presence.patch"
+  ],
+  "default_user_presence_timeout_seconds": 30,
+  "source_directory": "firmware/source",
+  "tested": {
+    "compiled": false,
+    "hardware": false,
+    "touch_required": false,
+    "openai_registration": false,
+    "daybreak_eligibility": false
+  },
+  "profile": "usb-repair",
+  "get_info_repairs": {
+    "forbidden_fido_2_2_version_removed": true,
+    "transports_match_enabled_interfaces": true,
+    "explicit_platform_option": false,
+    "explicit_user_presence_option": true,
+    "source_sha256": "50217ed5520c08652f48555045d65a13b029f41f9a8225b1da52b6c1aaf21b7f"
+  },
+  "reference_validation": {
+    "compiled": true,
+    "hardware": false,
+    "yubico_attestation": false,
+    "daybreak_eligibility": false
+  },
+  "reference_validation_note": "Build validation only; hardware results must be recorded separately for this exact image.",
+  "compatibility_note": "Native PicoKeys USB identity and WebAuthn attestation."
+}

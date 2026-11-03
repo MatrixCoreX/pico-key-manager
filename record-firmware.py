@@ -22,6 +22,14 @@ def record(profile):
     manifest.pop("reference_validation", None)
     manifest.pop("reference_validation_note", None)
     manifest.update(profile=profile, usb_identity=config["usb_identity"])
+    manifest["source_patches"] = [str(path.relative_to(ROOT)) for path in sorted((ROOT / "patches").glob("*.patch"))]
+    manifest["get_info_repairs"] = {
+        "forbidden_fido_2_2_version_removed": True,
+        "transports_match_enabled_interfaces": True,
+        "explicit_platform_option": False,
+        "explicit_user_presence_option": True,
+        "source_sha256": hashlib.sha256((ROOT / "firmware/source/src/fido/cbor_get_info.c").read_bytes()).hexdigest(),
+    }
     manifest["flags"]["VIDPID"] = config["vidpid"]
     manifest["uf2"] = {
         "file": "firmware/" + config["file"], **details,

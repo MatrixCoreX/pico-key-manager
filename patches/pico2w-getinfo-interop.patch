@@ -1,0 +1,112 @@
+diff --git a/firmware/source/src/fido/cbor_get_info.c b/firmware/source/src/fido/cbor_get_info.c
+index 80c26fb..1d3c96a 100644
+--- a/firmware/source/src/fido/cbor_get_info.c
++++ b/firmware/source/src/fido/cbor_get_info.c
+@@ -30,6 +30,32 @@
+ #define CRED_STORE_STATE_SIZE 16
+ #define DEV_STATE_SIZE (2 * CRED_STORE_STATE_SIZE)
+ 
++static CborError encode_available_transports(CborEncoder *parent) {
++    bool usb = false, smart_card = false;
++#ifdef ENABLE_EMULATION
++    usb = true;
++#else
++#ifdef USB_ITF_HID
++    usb = ITF_HID != ITF_INVALID;
++#endif
++#ifdef USB_ITF_CCID
++    smart_card = ITF_CCID != ITF_INVALID || ITF_WCID != ITF_INVALID;
++#endif
++#endif
++    CborEncoder array;
++    CborError error = cbor_encoder_create_array(parent, &array, (usb ? 1 : 0) + (smart_card ? 1 : 0));
++    if (error == CborNoError && usb) {
++        error = cbor_encode_text_stringz(&array, "usb");
++    }
++    if (error == CborNoError && smart_card) {
++        error = cbor_encode_text_stringz(&array, "smart-card");
++    }
++    if (error != CborNoError) {
++        return error;
++    }
++    return cbor_encoder_close_container(parent, &array);
++}
++
+ static int encrypt_dev_state_block(const file_t *ef_dev_state, dev_state_t state, uint8_t output[DEV_STATE_SIZE]) {
+     static const uint8_t salt[32] = { 0 };
+     uint8_t key[CRED_STORE_STATE_SIZE] = { 0 };
+@@ -93,13 +119,12 @@ int cbor_get_info(void) {
+ 
+     CBOR_CHECK(cbor_encode_uint(&mapEncoder, 0x01));
+     bool alwaysUv = (get_opts() & FIDO2_OPT_AUV) || (file_has_data(ef_pin) && !keydev_unlocked);
+-    CBOR_CHECK(cbor_encoder_create_array(&mapEncoder, &arrayEncoder, 4 + !alwaysUv));
++    CBOR_CHECK(cbor_encoder_create_array(&mapEncoder, &arrayEncoder, 3 + !alwaysUv));
+     if (!alwaysUv) {
+         CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "U2F_V2"));
+     }
+     CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "FIDO_2_0"));
+     CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "FIDO_2_1"));
+-    CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "FIDO_2_2"));
+     CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "FIDO_2_3"));
+     CBOR_CHECK(cbor_encoder_close_container(&mapEncoder, &arrayEncoder));
+ 
+@@ -122,13 +147,17 @@ int cbor_get_info(void) {
+     CBOR_CHECK(cbor_encode_byte_string(&mapEncoder, aaguid, sizeof(aaguid)));
+ 
+     CBOR_CHECK(cbor_encode_uint(&mapEncoder, 0x04));
+-    CBOR_CHECK(cbor_encoder_create_map(&mapEncoder, &arrayEncoder, enterprise_profile ? 11 : 10));
++    CBOR_CHECK(cbor_encoder_create_map(&mapEncoder, &arrayEncoder, enterprise_profile ? 13 : 12));
+     if (enterprise_profile) {
+         CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "ep"));
+         CBOR_CHECK(cbor_encode_boolean(&arrayEncoder, true));
+     }
+     CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "rk"));
+     CBOR_CHECK(cbor_encode_boolean(&arrayEncoder, !(get_opts() & FIDO2_OPT_NORK)));
++    CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "up"));
++    CBOR_CHECK(cbor_encode_boolean(&arrayEncoder, true));
++    CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "plat"));
++    CBOR_CHECK(cbor_encode_boolean(&arrayEncoder, false));
+     CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "alwaysUv"));
+     CBOR_CHECK(cbor_encode_boolean(&arrayEncoder, alwaysUv));
+     CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "credMgmt"));
+@@ -165,10 +194,7 @@ int cbor_get_info(void) {
+     CBOR_CHECK(cbor_encode_uint(&mapEncoder, MAX_CRED_ID_LENGTH)); // MAX_CRED_ID_MAX_LENGTH
+ 
+     CBOR_CHECK(cbor_encode_uint(&mapEncoder, 0x09));
+-    CBOR_CHECK(cbor_encoder_create_array(&mapEncoder, &arrayEncoder, 2));
+-    CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "usb"));
+-    CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "smart-card"));
+-    CBOR_CHECK(cbor_encoder_close_container(&mapEncoder, &arrayEncoder));
++    CBOR_CHECK(encode_available_transports(&mapEncoder));
+ 
+     CBOR_CHECK(cbor_encode_uint(&mapEncoder, 0x0A));
+ 
+@@ -261,10 +287,7 @@ int cbor_get_info(void) {
+     CBOR_CHECK(cbor_encode_byte_string(&mapEncoder, enc_identifier, sizeof(enc_identifier)));
+ 
+     CBOR_CHECK(cbor_encode_uint(&mapEncoder, 0x1A));
+-    CBOR_CHECK(cbor_encoder_create_array(&mapEncoder, &arrayEncoder, 2));
+-    CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "usb"));
+-    CBOR_CHECK(cbor_encode_text_stringz(&arrayEncoder, "smart-card"));
+-    CBOR_CHECK(cbor_encoder_close_container(&mapEncoder, &arrayEncoder));
++    CBOR_CHECK(encode_available_transports(&mapEncoder));
+ 
+     CBOR_CHECK(cbor_encode_uint(&mapEncoder, 0x1B));
+     CBOR_CHECK(cbor_encode_boolean(&mapEncoder, file_has_data(ef_pin_policy)));
+diff --git a/firmware/source/tests/pico-fido/test_000_getinfo.py b/firmware/source/tests/pico-fido/test_000_getinfo.py
+index 6bc289d..bd685d5 100644
+--- a/firmware/source/tests/pico-fido/test_000_getinfo.py
++++ b/firmware/source/tests/pico-fido/test_000_getinfo.py
+@@ -33,6 +33,12 @@ def test_getinfo(device):
+ 
+ def test_get_info_version(info):
+     assert "FIDO_2_0" in info.versions
++    assert "FIDO_2_2" not in info.versions
++
++
++def test_get_info_external_authenticator_options(info):
++    assert info.options.get("plat") is False
++    assert info.options.get("up") is True
+ 
+ 
+ def test_get_info_ctap_23_fields_are_well_formed(device, info):

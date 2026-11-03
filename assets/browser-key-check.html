@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pico 浏览器 USB 检查</title>
+<style>
+body{font:17px/1.7 system-ui,sans-serif;background:#f5f8f7;color:#183b35;max-width:760px;margin:60px auto;padding:0 24px}
+main{background:white;border:1px solid #d5e8e1;border-radius:24px;padding:32px}h1{font-size:29px;line-height:1.3}
+button{background:#126c58;color:white;border:0;border-radius:12px;padding:14px 20px;font:inherit;cursor:pointer;margin:8px 10px 8px 0}
+button:disabled{opacity:.4;cursor:default}#status{padding:16px;background:#eaf5ef;border-radius:12px;margin:18px 0;white-space:pre-wrap}
+pre{font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}small{color:#58716a}
+</style>
+<main>
+<h1>Pico 浏览器 USB 检查</h1>
+<p>先完成第一步，再点第二步。每一步可能要求输入设备 PIN，并短按 BOOTSEL 确认。</p>
+<p>在浏览器弹窗中选择 <b>USB 安全密钥</b>。如果询问是否允许读取设备型号，请允许本次检查。</p>
+<button id="register">1. 检查 USB 注册</button>
+<button id="authenticate" disabled>2. 验证登录签名</button>
+<div id="status">准备好后，点击第一步。</div>
+<pre id="result"></pre>
+<small>测试仅连接本机，使用临时凭据，不更改 OpenAI 账号。PIN 由浏览器处理；结果不包含 PIN、账号或凭据 ID。此测试不判定 Daybreak 资格。</small>
+</main>
+<script>
+const token='__LOCAL_TOKEN__';
+const statusNode=document.querySelector('#status');
+const resultNode=document.querySelector('#result');
+const first=document.querySelector('#register');
+const second=document.querySelector('#authenticate');
+const decode=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
+const encode=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+async function api(path,data){
+ const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json','X-Local-Check':token},body:JSON.stringify(data)});
+ const value=await response.json();if(!response.ok)throw Error(value.error+' '+(value.type||''));return value;
+}
+function serialize(c){
+ const r=c.response;
+ const response={clientDataJSON:encode(r.clientDataJSON)};
+ for(const field of ['attestationObject','authenticatorData','signature'])if(r[field])response[field]=encode(r[field]);
+ if(r.userHandle)response.userHandle=encode(r.userHandle);
+ return {id:c.id,rawId:encode(c.rawId),type:c.type,response,
+  authenticatorAttachment:c.authenticatorAttachment,clientExtensionResults:c.getClientExtensionResults(),
+  browserTransports:r.getTransports?r.getTransports():[]};
+}
+async function run(action){
+ first.disabled=true;second.disabled=true;
+ try{
+  statusNode.textContent='请在弹窗选择 USB 安全密钥，输入 PIN，并在提示后短按 BOOTSEL。';
+  const options=await api('/begin',{action});const p=options.publicKey;
+  p.challenge=decode(p.challenge);if(p.user)p.user.id=decode(p.user.id);
+  for(const field of ['allowCredentials','excludeCredentials'])for(const c of p[field]||[])c.id=decode(c.id);
+  const credential=action==='register'?await navigator.credentials.create(options):await navigator.credentials.get(options);
+  const result=await api('/finish',{action,credential:serialize(credential)});
+  resultNode.textContent=JSON.stringify(result,null,2);
+  if(action==='register'){
+   second.disabled=false;
+   statusNode.textContent=result.external_usb_reported?'浏览器已报告外置 USB 密钥。请继续第二步。':'注册响应已收到。请继续第二步，随后检查详细结果。';
+  }else statusNode.textContent='本地浏览器注册与登录签名检查完成。可以返回聊天。';
+ }catch(error){statusNode.textContent='操作未完成：'+error.name+' '+error.message+'\n可重新点击第一步开始。';}
+ finally{first.disabled=false;}
+}
+first.onclick=()=>run('register');second.onclick=()=>run('authenticate');
+</script>
+</html>

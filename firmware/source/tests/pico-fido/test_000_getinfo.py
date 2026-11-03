@@ -33,6 +33,12 @@ def test_getinfo(device):
 
 def test_get_info_version(info):
     assert "FIDO_2_0" in info.versions
+    assert "FIDO_2_2" not in info.versions
+
+
+def test_get_info_external_authenticator_options(info):
+    assert info.options.get("plat") is False
+    assert info.options.get("up") is True
 
 
 def test_get_info_ctap_23_fields_are_well_formed(device, info):

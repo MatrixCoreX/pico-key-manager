@@ -45,6 +45,7 @@ bash install-desktop.sh
 1. 修复 Pico 2 W 的 CYW43 LED 驱动编号可见性。
 2. 强制物理确认时设置默认 30 秒等待时间。
 3. 补齐未传 PIN 授权参数时创建凭据的物理确认检查。
+4. 修正 GetInfo 版本标记、启用接口的传输声明和外置设备选项，并验证 CBOR 规范排序。
 
 默认固件使用 PicoKeys 原有 USB 身份与 attestation。另提供上游 `VIDPID=Yubikey5` 选项的 USB 兼容固件：只把 VID/PID 改为 `1050:0407`，产品名仍为 Pico Key，AAGUID 和 attestation 实现保持 PicoKeys 原样。
 **兼容模式不能提供 Yubico 厂商认证，也不保证 OpenAI Daybreak 接受。** 没有烧写 OTP 或启用 Secure Lock。
@@ -53,8 +54,13 @@ bash install-desktop.sh
 | --- | --- | --- |
 | 原生（默认） | `2e8a:10fe` | `pico_fido_pico2_w_EXPERIMENTAL.uf2` |
 | YubiKey USB 兼容 | `1050:0407` | `pico_fido_pico2_w_YUBIKEY_USB_COMPAT_EXPERIMENTAL.uf2` |
+| USB 协议修正版 | `2e8a:10fe` | `pico_fido_pico2_w_USB_REPAIR_EXPERIMENTAL.uf2` |
 
 ![USB 兼容模式设备概览](docs/screenshots/usb-compat.png)
+
+USB 协议修正版移除规范不允许的 `FIDO_2_2` 版本标记，只声明当前启用的传输接口，并明确报告 `plat=false`、`up=true`。它使用 Pico 原生身份，不更改 AAGUID、密钥派生或 attestation。该修正没有被证实可以解决 OpenAI 硬件资格检查。
+本次网页观察中，已有 Pico 凭据被识别为“已注册”，但页面仍提示添加硬件密钥并禁用“继续”；改变 USB 标识没有使该流程放行。具体原因尚未确认。
+原生和 YubiKey USB 兼容的参考镜像保持原样；其源码版本见 Git 提交 `263e6ea`、`b754ede`。当前源码另包含 `patches/pico2w-getinfo-interop.patch`。
 
 ### 编译
 
@@ -77,6 +83,8 @@ bash build-pico2w.sh yubikey-compat
 
 输出目录为 `build/pico2w-yubikey-compat/`，构建清单为 `firmware/build-manifest-yubikey-compat.json`。
 
+编译协议修正版：`bash build-pico2w.sh usb-repair`。输出目录为 `build/pico2w-usb-repair/`。
+
 ### 烧录与本地测试
 
 按住 BOOTSEL 插入 USB，看到 `RP2350` 烧录盘后松开。可在桌面工具“固件与维护”页面写入 UF2，或运行：
@@ -87,6 +95,7 @@ python3 flash-pico2w.py
 
 写入兼容模式时运行 `python3 flash-pico2w.py yubikey-compat`。加上 `--check-only` 可只检查文件。
 恢复原生模式时，重新进入 BOOTSEL 后运行 `python3 flash-pico2w.py native`。
+写入协议修正版时，重新进入 BOOTSEL 后运行 `python3 flash-pico2w.py usb-repair`。
 脚本核对构建清单 SHA-256，且只接受 1 MiB 程序分区内的固件数据，避免直接覆盖绑定和凭据分区；切换后仍需检查 PIN 和原有登录是否可用。
 桌面工具通过 Pico 产品名区分兼容设备，不把真正的 YubiKey 纳入管理。
 
@@ -109,6 +118,8 @@ mkdir -p .tmp
 TMPDIR="$PWD/.tmp" .venv/bin/python -m unittest discover -s tests -v
 ```
 
+GetInfo 编码回归测试会编译固件中的实际选项编码段，并检查四种 PIN／企业模式组合的 CBOR 规范排序。它需要固件构建获取的 TinyCBOR 依赖和系统 C 编译器；依赖缺失时会明确跳过。
+
 连接 Pico 并在桌面会话中运行界面检查：
 
 ```bash
@@ -116,6 +127,13 @@ PYTHONPATH="$PWD" .venv/bin/python tests/gui_smoke.py
 ```
 
 界面检查使用合成数据，验证页面、PIN 表单、取消、重置确认和断开状态，不修改真实 PIN 或清空设备。
+
+### 浏览器 USB 检查
+
+运行 `.venv/bin/python browser-key-check.py`，在浏览器打开输出的 localhost 地址，依次完成 USB 注册与登录签名检查。
+页面强制选择外置认证器和 PIN 验证，使用临时非驻留凭据；服务仅监听本机，结果保存在忽略的 `logs/browser-key-check.json`。
+报告包含浏览器的设备类型、USB 传输、备份标志、attestation 类型与签名校验结果，不记录 PIN、账号或凭据 ID。已有 OpenAI 凭据不被修改。
+有效的本地 attestation 签名不代表可信厂商认证，也不代表 OpenAI 硬件资格通过。
 
 ## 数据与兼容性
 
