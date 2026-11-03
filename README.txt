@@ -28,7 +28,18 @@ Pico SDK 2.3.1 commit：079c6f39023649b154152db30f1d781e884879bc
 输出固件标记 EXPERIMENTAL。板上测试进度与结果见 build-info.json 和 logs/；
 烧录脚本为 python3 flash-pico2w.py，只写入已挂载的 RP2350 烧录盘。
 完成 PIN、物理按键确认和拒绝无按键操作的测试后，再测试真实账户兼容性。
-保留 PicoKeys 默认 USB 身份与 attestation。没有烧写 OTP 或启用 Secure Lock。
+原生模式保留 PicoKeys 默认 USB 身份与 attestation。没有烧写 OTP 或启用 Secure Lock。
+
+YubiKey USB 兼容模式
+构建：bash build-pico2w.sh yubikey-compat
+检查：python3 flash-pico2w.py yubikey-compat --check-only
+烧录：python3 flash-pico2w.py yubikey-compat
+恢复原生：进入 BOOTSEL 后运行 python3 flash-pico2w.py native
+兼容模式调用上游 VIDPID=Yubikey5，只修改 USB VID/PID 为 1050:0407。
+产品名仍为 Pico Key，AAGUID 与 attestation 实现保持不变；不能获得 Yubico
+厂商认证，也没有证明能通过 OpenAI Daybreak 的硬件密钥资格检查。
+兼容与原生使用不同 UF2 和构建目录，原生固件作为恢复选项保留。
+刷写脚本校验构建清单 SHA-256 和 1 MiB 程序分区边界，不执行 FIDO 重置。
 
 本地完成 PIN 与签名测试
 在本地终端运行：

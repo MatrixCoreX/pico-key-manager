@@ -3,6 +3,7 @@
 /.deps/
 /build/
 /vendor/
+/firmware/source/pico-keys-sdk/third-party/
 /logs/
 /build-info.json
 /exports/

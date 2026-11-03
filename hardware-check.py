@@ -10,6 +10,7 @@ import time
 from fido2.ctap import CtapError
 from fido2.ctap2 import Ctap2
 from fido2.hid import CtapHidDevice
+from pico_key_manager.identity import is_pico_descriptor
 
 ROOT = Path(__file__).resolve().parent
 RP_ID = "yunbikey-test.invalid"
@@ -70,7 +71,7 @@ def main():
     args = parser.parse_args()
     device = None
     for candidate in CtapHidDevice.list_devices():
-        if candidate.descriptor.vid == 0x2E8A and candidate.descriptor.pid == 0x10FE:
+        if is_pico_descriptor(candidate.descriptor):
             device = candidate
             break
         candidate.close()

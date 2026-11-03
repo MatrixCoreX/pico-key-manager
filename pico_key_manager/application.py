@@ -371,7 +371,7 @@ class ManagerWindow(Adw.ApplicationWindow):
         self.info = info
         self._set_badge("已连接", "connected")
         self.device_title.set_text("Pico Key")
-        self.device_description.set_text(info["name"] + "  ·  USB 安全密钥")
+        self.device_description.set_text(info["name"] + "  ·  " + info["usb_mode"])
         self.metrics["firmware"].set_text(info["firmware"])
         self.metrics["pin"].set_text("已设置" if info["pin_set"] else "未设置")
         self.metrics["protocol"].set_text(next((x.replace("FIDO_", "FIDO ").replace("_", ".") for x in reversed(info["versions"]) if x.startswith("FIDO_")), "U2F"))

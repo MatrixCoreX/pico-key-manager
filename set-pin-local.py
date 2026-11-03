@@ -8,13 +8,14 @@ from fido2.ctap2 import Ctap2
 from fido2.ctap2.pin import ClientPin
 from fido2.hid import CtapHidDevice
 from project_metadata import load_build_metadata, store_build_metadata
+from pico_key_manager.identity import is_pico_descriptor
 
 if not sys.stdin.isatty():
     raise SystemExit("请在本地终端运行；PIN 不应发送到聊天窗口。")
 
 device = None
 for candidate in CtapHidDevice.list_devices():
-    if candidate.descriptor.vid == 0x2E8A and candidate.descriptor.pid == 0x10FE:
+    if is_pico_descriptor(candidate.descriptor):
         device = candidate
         break
     candidate.close()

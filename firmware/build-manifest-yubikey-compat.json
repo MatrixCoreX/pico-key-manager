@@ -1,0 +1,66 @@
+{
+  "board": "pico2_w",
+  "platform": "rp2350-arm-s",
+  "pico_fido": "b1df38dbab49b7365282e1bad12f0c38862cf643",
+  "pico_keys_sdk": "50699e53e8ada214c27f6c9b66ea3b6f127fc655",
+  "pico_sdk": "079c6f39023649b154152db30f1d781e884879bc",
+  "mbedtls": "fc39404125e93ee00e6758605e6c6f2c8db440f1",
+  "tinycbor": "c0aad2fb2137a31b9845fbaae3653540c410f215",
+  "flags": {
+    "ENABLE_EDDSA": true,
+    "FORCE_BUTTON_WAIT": true,
+    "ENABLE_OATH_APP": false,
+    "ENABLE_OTP_APP": false,
+    "ENABLE_PQC": false,
+    "ENABLE_LIBCVC": false,
+    "VIDPID": "Yubikey5"
+  },
+  "usb_identity": "1050:0407",
+  "compiler": "arm-none-eabi-gcc (15:14.2.rel1-1) 14.2.1 20241119",
+  "uf2": {
+    "file": "firmware/pico_fido_pico2_w_YUBIKEY_USB_COMPAT_EXPERIMENTAL.uf2",
+    "sha256": "af90b8228787047087c15d00ece779f147b614b3ddddd3f6fd2f8f40abd7b454",
+    "bytes": 1416192,
+    "total_blocks": 2766,
+    "arm_secure_blocks": 2765,
+    "family_ids": [
+      "0xe48bff57",
+      "0xe48bff59"
+    ],
+    "payload_start": "0x10000000",
+    "payload_end": "0x100acd00",
+    "structural_validation": "passed; payload confined to the 1 MiB firmware partition"
+  },
+  "source_patches": [
+    "patches/pico2w-led-driver.patch",
+    "patches/pico2w-touch-default.patch",
+    "patches/pico2w-user-presence.patch"
+  ],
+  "default_user_presence_timeout_seconds": 30,
+  "source_directory": "firmware/source",
+  "tested": {
+    "compiled": false,
+    "hardware": false,
+    "touch_required": false,
+    "openai_registration": false,
+    "daybreak_eligibility": false
+  },
+  "profile": "yubikey-compat",
+  "reference_validation": {
+    "compiled": true,
+    "hardware": true,
+    "yubico_attestation": false,
+    "daybreak_eligibility": false,
+    "usb_identity_verified": true,
+    "pin_state_retained": true,
+    "aaguid_retained": true,
+    "pin_verified": true,
+    "pin_protected_registration": true,
+    "pin_protected_authentication": true,
+    "touch_authentication_signature_verified": true,
+    "openai_registration": false
+  },
+  "reference_validation_note": "This exact image was flashed and tested on one Pico 2 W. USB identity, retained PIN state and AAGUID, existing PIN verification, PIN-protected registration and assertion signature verification passed. This is not a state report for a newly connected device; OpenAI account acceptance was not tested.",
+  "compatibility_note": "USB VID/PID compatibility only; Pico product and WebAuthn attestation are retained.",
+  "reference_validation_date": "2026-11-03"
+}

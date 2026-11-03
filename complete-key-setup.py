@@ -14,6 +14,7 @@ from fido2.hid import CtapHidDevice
 
 from hardware_check_support import confirmed_operation
 from project_metadata import load_build_metadata, store_build_metadata
+from pico_key_manager.identity import is_pico_descriptor
 
 ROOT = Path(__file__).resolve().parent
 RP_ID = "yunbikey-test.invalid"
@@ -35,7 +36,7 @@ def main():
         raise SystemExit("请在本地终端运行，PIN 不应发送到聊天窗口。")
     devices = []
     for candidate in CtapHidDevice.list_devices():
-        if candidate.descriptor.vid == 0x2E8A and candidate.descriptor.pid == 0x10FE:
+        if is_pico_descriptor(candidate.descriptor):
             devices.append(candidate)
         else:
             candidate.close()

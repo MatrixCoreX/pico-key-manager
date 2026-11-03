@@ -6,7 +6,6 @@ import hashlib
 import json
 import os
 from pathlib import Path
-import struct
 import subprocess
 import threading
 import time
@@ -16,9 +15,10 @@ from fido2.ctap2 import Ctap2
 from fido2.ctap2.credman import CredentialManagement
 from fido2.ctap2.pin import ClientPin
 from fido2.hid import CtapHidDevice, list_descriptors, open_connection
+from .identity import is_pico_descriptor, usb_mode
+from .uf2 import inspect_uf2
 
 RP_ID = "pico-key-manager-test.invalid"
-SUPPORTED = {(0x2E8A, 0x10FE), (0x1209, 0x0001)}
 
 
 class DeviceError(Exception):
@@ -41,7 +41,7 @@ class DeviceRef:
 def discover():
     result = []
     for item in list_descriptors():
-        if (item.vid, item.pid) in SUPPORTED:
+        if is_pico_descriptor(item):
             result.append(DeviceRef(str(item.path), item.product_name or "Pico FIDO", item.serial_number or "", item.vid, item.pid))
     return result
 
@@ -99,6 +99,7 @@ def describe(ref):
         firmware = info.firmware_version
         return {
             "name": ref.name, "path": ref.path, "usb_id": f"{ref.vid:04x}:{ref.pid:04x}",
+            "usb_mode": usb_mode(ref.vid, ref.pid),
             "firmware": f"{firmware >> 8}.{firmware & 255}" if firmware is not None else "未知",
             "versions": list(info.versions), "pin_set": info.options.get("clientPin"),
             "resident_keys": bool(info.options.get("rk")),
@@ -262,21 +263,10 @@ def boot_volume():
 
 
 def validate_uf2(path):
-    data = Path(path).read_bytes()
-    if not data or len(data) % 512 or len(data) > 16 * 1024 * 1024:
-        raise DeviceError("不是有效的 UF2 文件。")
-    payload = []
-    for offset in range(0, len(data), 512):
-        header = struct.unpack_from("<8I", data, offset)
-        if header[:2] != (0x0A324655, 0x9E5D5157) or struct.unpack_from("<I", data, offset + 508)[0] != 0x0AB16F30 or header[4] > 476:
-            raise DeviceError("UF2 数据块校验失败。")
-        if header[7] == 0xE48BFF59:
-            payload.append(header)
-    if not payload or len(payload) != payload[0][6] or {x[5] for x in payload} != set(range(len(payload))):
-        raise DeviceError("需要完整的 RP2350 Arm Secure UF2 固件。")
-    if not all(x[6] == len(payload) and 0x10000000 <= x[3] and x[3] + x[4] <= 0x10400000 for x in payload):
-        raise DeviceError("固件超出 Pico 2 W 的 Flash 范围。")
-    return {"path": str(Path(path).resolve()), "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+    try:
+        return {"path": str(Path(path).resolve()), **inspect_uf2(Path(path).read_bytes())}
+    except ValueError as error:
+        raise DeviceError(str(error)) from None
 
 
 def flash_uf2(path, expected_sha256, progress):

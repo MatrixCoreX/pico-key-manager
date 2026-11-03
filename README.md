@@ -7,6 +7,7 @@
 ## 功能
 
 - 自动识别 USB 安全密钥，查看固件版本、PIN 状态、协议和算法。
+- 支持 Pico 原生身份和 YubiKey USB 兼容模式，概览显示当前模式。
 - 设置、修改、验证 PIN；PIN 不保存到配置或日志。
 - 用 PIN 解锁驻留 Passkey 列表，查看网站和账号，删除选定凭据。
 - 使用临时非驻留凭据，验证 PIN、物理按键和 ES256 / EdDSA 登录签名。
@@ -45,7 +46,15 @@ bash install-desktop.sh
 2. 强制物理确认时设置默认 30 秒等待时间。
 3. 补齐未传 PIN 授权参数时创建凭据的物理确认检查。
 
-固件使用 PicoKeys 原有 USB 身份与 attestation。本项目不通过伪装 YubiKey 身份来承诺平台兼容性，也没有烧写 OTP 或启用 Secure Lock。
+默认固件使用 PicoKeys 原有 USB 身份与 attestation。另提供上游 `VIDPID=Yubikey5` 选项的 USB 兼容固件：只把 VID/PID 改为 `1050:0407`，产品名仍为 Pico Key，AAGUID 和 attestation 实现保持 PicoKeys 原样。
+**兼容模式不能提供 Yubico 厂商认证，也不保证 OpenAI Daybreak 接受。** 没有烧写 OTP 或启用 Secure Lock。
+
+| 模式 | USB VID/PID | 固件 |
+| --- | --- | --- |
+| 原生（默认） | `2e8a:10fe` | `pico_fido_pico2_w_EXPERIMENTAL.uf2` |
+| YubiKey USB 兼容 | `1050:0407` | `pico_fido_pico2_w_YUBIKEY_USB_COMPAT_EXPERIMENTAL.uf2` |
+
+![USB 兼容模式设备概览](docs/screenshots/usb-compat.png)
 
 ### 编译
 
@@ -60,6 +69,14 @@ bash build-pico2w.sh
 
 首次配置时，固件构建脚本会按上游源码中的依赖定义获取 mbedTLS 和 TinyCBOR。构建结果位于 `build/pico2w/`，UF2 会复制到 `firmware/`。
 
+编译兼容模式（单独输出，不覆盖原生固件）：
+
+```bash
+bash build-pico2w.sh yubikey-compat
+```
+
+输出目录为 `build/pico2w-yubikey-compat/`，构建清单为 `firmware/build-manifest-yubikey-compat.json`。
+
 ### 烧录与本地测试
 
 按住 BOOTSEL 插入 USB，看到 `RP2350` 烧录盘后松开。可在桌面工具“固件与维护”页面写入 UF2，或运行：
@@ -67,6 +84,11 @@ bash build-pico2w.sh
 ```bash
 python3 flash-pico2w.py
 ```
+
+写入兼容模式时运行 `python3 flash-pico2w.py yubikey-compat`。加上 `--check-only` 可只检查文件。
+恢复原生模式时，重新进入 BOOTSEL 后运行 `python3 flash-pico2w.py native`。
+脚本核对构建清单 SHA-256，且只接受 1 MiB 程序分区内的固件数据，避免直接覆盖绑定和凭据分区；切换后仍需检查 PIN 和原有登录是否可用。
+桌面工具通过 Pico 产品名区分兼容设备，不把真正的 YubiKey 纳入管理。
 
 需要重新设置 PIN 和做签名测试时，在本地终端运行：
 
@@ -78,7 +100,8 @@ PIN 由本地隐藏输入；每次物理确认由用户准备好后开始。测�
 
 ## 验证
 
-参考固件已在一块 Pico 2 W 上通过 PIN 授权、按键注册、按键登录签名校验，以及“不按键时拒绝创建和登录”测试。
+原生参考固件已在一块 Pico 2 W 上通过 PIN 授权、按键注册、按键登录签名校验，以及“不按键时拒绝创建和登录”测试。
+兼容固件已在同一块板上通过 USB 标识、PIN 状态保留、现有 PIN 验证、受 PIN 保护的按键注册和登录签名校验；AAGUID 保持不变。
 这份参考记录不代表新连接设备的当前状态。新设备应单独测试。
 
 ```bash
