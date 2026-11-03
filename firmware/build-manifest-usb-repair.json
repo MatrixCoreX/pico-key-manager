@@ -56,10 +56,35 @@
   },
   "reference_validation": {
     "compiled": true,
-    "hardware": false,
+    "hardware": true,
     "yubico_attestation": false,
-    "daybreak_eligibility": false
+    "daybreak_eligibility": false,
+    "strict_cbor_get_info_verified": true,
+    "get_info_repairs_verified": true,
+    "usb_identity_verified": true,
+    "pin_state_retained": true,
+    "aaguid_retained": true,
+    "desktop_smoke_verified": true,
+    "browser_registration_verified": true,
+    "browser_authentication_signature_verified": true,
+    "openai_registration": false,
+    "pin_verified": true,
+    "pin_protected_registration": true,
+    "pin_protected_authentication": true,
+    "touch_authentication_signature_verified": true
   },
-  "reference_validation_note": "Build validation only; hardware results must be recorded separately for this exact image.",
-  "compatibility_note": "Native PicoKeys USB identity and WebAuthn attestation."
+  "reference_validation_note": "This exact image was flashed to one Pico 2 W. Standard strict-CBOR GetInfo, repaired version and transport declarations, retained PIN state and AAGUID, five desktop pages, and real-browser PIN-authorized USB registration and ES256 assertion signature verification passed. The browser reported a non-backup-eligible external USB credential and SELF attestation without an attestation certificate. OpenAI hardware eligibility remains unverified.",
+  "compatibility_note": "Native PicoKeys USB identity and WebAuthn attestation.",
+  "reference_validation_date": "2026-11-03",
+  "reference_browser_observations": {
+    "attachment": "cross-platform",
+    "transports": [
+      "usb"
+    ],
+    "backup_eligible": false,
+    "backed_up": false,
+    "attestation_type": "SELF",
+    "has_attestation_certificate": false,
+    "manufacturer_trust_verified": false
+  }
 }

@@ -60,7 +60,8 @@ class Check:
                            if key in ('device_usb_id', 'pin_set', 'openai_eligibility_tested')}
             self.result.update(completed=False, stage='waiting_for_usb_registration')
             options, self.state = self.server.register_begin(
-                {'id': os.urandom(16), 'name': 'disposable-local-test'},
+                {'id': os.urandom(16), 'name': 'disposable-local-test',
+                 'displayName': 'Disposable local USB test'},
                 authenticator_attachment='cross-platform',
                 resident_key_requirement='discouraged', user_verification='required',
                 extensions={'credProps': True},

@@ -38,6 +38,9 @@ class BrowserCheckTests(unittest.TestCase):
 
     def register(self):
         options = self.check.begin('register')['publicKey']
+        self.assertTrue(options['user']['displayName'])
+        self.assertTrue(options['user']['name'])
+        self.assertTrue(options['rp']['name'])
         client_data = CollectedClientData.create('webauthn.create', options['challenge'], 'http://localhost:12345')
         auth_data = AuthenticatorData.create(hashlib.sha256(b'localhost').digest(), 0x45, 1, self.credential)
         signature = self.key.sign(bytes(auth_data) + client_data.hash, ec.ECDSA(hashes.SHA256()))

@@ -111,6 +111,7 @@ PIN 由本地隐藏输入；每次物理确认由用户准备好后开始。测�
 
 原生参考固件已在一块 Pico 2 W 上通过 PIN 授权、按键注册、按键登录签名校验，以及“不按键时拒绝创建和登录”测试。
 兼容固件已在同一块板上通过 USB 标识、PIN 状态保留、现有 PIN 验证、受 PIN 保护的按键注册和登录签名校验；AAGUID 保持不变。
+USB 协议修正版已刷入同一块板，通过标准客户端严格 CBOR 读取、版本和 USB 接口声明检查、桌面五个页面，以及真实浏览器的 PIN 授权注册和 ES256 登录签名验证；PIN 状态和 AAGUID 保留。浏览器报告 `cross-platform`、`usb`、`backup_eligible=false`、`backed_up=false`，attestation 为 SELF 且无厂商证书。OpenAI 资格尚未确认，不能从本地测试通过推断。
 这份参考记录不代表新连接设备的当前状态。新设备应单独测试。
 
 ```bash
